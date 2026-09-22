@@ -37,10 +37,18 @@ rule token = parse
 |	"forward"	{ FORWARD }
 |	"print"		{ PRINT }
 |	"right"		{ RIGHT }
+| 	"backward" 	{ BACKWARD }
+| 	"left" 		{ LEFT }
+| 	"home" 		{ HOME }
+|	'"' (id as x) { NAME x} 
+| 	"make"      { MAKE }
+|	':' (id as x) { REF x}
 
+| '+' {PLUS}
+| '(' {LPAR}
+| ')' {RPAR}
 
-|	"print" blank* '"' ([^ '"']* as x) '"'
-				{ PRINTS x }
+|	"print" blank* '"' ([^ '"']* as x) '"' { PRINTS x }
 
 |	dec	as n	{ INT (int_of_string n) }
 
