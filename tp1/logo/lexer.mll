@@ -44,9 +44,14 @@ rule token = parse
 | 	"make"      { MAKE }
 |	':' (id as x) { REF x}
 
-| '+' {PLUS}
 | '(' {LPAR}
 | ')' {RPAR}
+| '+' {PLUS}
+| '-' {MINUS}
+| '*' {TIMES}
+| '/' {DIV}
+| '%' {MOD}
+| '^' {POW}
 
 |	"print" blank* '"' ([^ '"']* as x) '"' { PRINTS x }
 

@@ -113,6 +113,11 @@
 %token LPAR
 %token RPAR
 %token PLUS
+%token MINUS
+%token TIMES
+%token MOD
+%token DIV
+%token POW
 
 %token MAKE
 
@@ -165,16 +170,51 @@ cmd:
 
 ;
 
+/*TODO pour add analyser la grammaire pour l'associativité  5-2+3 != 5-(2+3)
 
+
+add: en rajoutant un non terminal on peut régler le problème
+Pour le voir comme dans le cour: a=int b=ref
+						S  -> S'
+S -> a					S  -> S+S'	(permet l'associativité à gauche)
+           } devient ->	S' -> a
+S -> b                  S' -> b 
+						S' -> (S)
+*/
 expr:
-	INT
-		{ CST $1 }
-|   REF
+    expr2
+        { $1 }
+|   expr PLUS expr2
+        { NONE }
+|   expr MINUS expr2
 		{ NONE }
-|   INT PLUS expr 
-		{NONE}
-|   REF PLUS expr 
-		{NONE}
-|   LPAR expr RPAR 	
-		{NONE}
 ;
+
+expr2:
+	expr3 POW expr2
+		{ NONE }
+|	expr3
+		{ NONE }
+;
+
+expr3: 
+    expr3 TIMES expr4	
+		{ NONE }
+|	expr3 MOD expr4
+		{ NONE }
+|	expr3 DIV expr4
+		{ NONE }
+|	expr4
+		{ NONE}
+;
+
+expr4: 
+	INT
+        { CST $1 }
+|   REF
+        { NONE }
+|   LPAR expr RPAR
+        { NONE }
+;
+
+

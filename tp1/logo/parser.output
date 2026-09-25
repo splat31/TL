@@ -17,13 +17,23 @@
   12      | HOME
   13      | MAKE NAME expr
 
-  14  expr : INT
-  15       | REF
-  16       | INT PLUS expr
-  17       | REF PLUS expr
-  18       | LPAR expr RPAR
+  14  expr : expr2
+  15       | expr PLUS expr2
+  16       | expr MINUS expr2
 
-  19  %entry% : '\001' program
+  17  expr2 : expr3 POW expr2
+  18        | expr3
+
+  19  expr3 : expr3 TIMES expr4
+  20        | expr3 MOD expr4
+  21        | expr3 DIV expr4
+  22        | expr4
+
+  23  expr4 : INT
+  24        | REF
+  25        | LPAR expr RPAR
+
+  26  %entry% : '\001' program
 
 state 0
 	$accept : . %entry% $end  (0)
@@ -35,7 +45,7 @@ state 0
 
 
 state 1
-	%entry% : '\001' . program  (19)
+	%entry% : '\001' . program  (26)
 	opt_cmd_seq : .  (2)
 
 	FORWARD  shift 3
@@ -69,6 +79,9 @@ state 3
 	.  error
 
 	expr  goto 18
+	expr2  goto 19
+	expr3  goto 20
+	expr4  goto 21
 
 
 state 4
@@ -79,7 +92,10 @@ state 4
 	REF  shift 17
 	.  error
 
-	expr  goto 19
+	expr  goto 22
+	expr2  goto 19
+	expr3  goto 20
+	expr4  goto 21
 
 
 state 5
@@ -90,7 +106,10 @@ state 5
 	REF  shift 17
 	.  error
 
-	expr  goto 20
+	expr  goto 23
+	expr2  goto 19
+	expr3  goto 20
+	expr4  goto 21
 
 
 state 6
@@ -101,7 +120,10 @@ state 6
 	REF  shift 17
 	.  error
 
-	expr  goto 21
+	expr  goto 24
+	expr2  goto 19
+	expr3  goto 20
+	expr4  goto 21
 
 
 state 7
@@ -112,7 +134,10 @@ state 7
 	REF  shift 17
 	.  error
 
-	expr  goto 22
+	expr  goto 25
+	expr2  goto 19
+	expr3  goto 20
+	expr4  goto 21
 
 
 state 8
@@ -124,7 +149,7 @@ state 8
 state 9
 	cmd : MAKE . NAME expr  (13)
 
-	NAME  shift 23
+	NAME  shift 26
 	.  error
 
 
@@ -135,9 +160,9 @@ state 10
 
 
 state 11
-	%entry% : '\001' program .  (19)
+	%entry% : '\001' program .  (26)
 
-	.  reduce 19
+	.  reduce 26
 
 
 state 12
@@ -160,7 +185,7 @@ state 13
 	PRINTS  shift 10
 	$end  reduce 3
 
-	cmd  goto 24
+	cmd  goto 27
 
 
 state 14
@@ -170,82 +195,7 @@ state 14
 
 
 state 15
-	expr : LPAR . expr RPAR  (18)
-
-	LPAR  shift 15
-	INT  shift 16
-	REF  shift 17
-	.  error
-
-	expr  goto 25
-
-
-state 16
-	expr : INT .  (14)
-	expr : INT . PLUS expr  (16)
-
-	PLUS  shift 26
-	$end  reduce 14
-	FORWARD  reduce 14
-	BACKWARD  reduce 14
-	PRINT  reduce 14
-	RIGHT  reduce 14
-	LEFT  reduce 14
-	HOME  reduce 14
-	RPAR  reduce 14
-	MAKE  reduce 14
-	PRINTS  reduce 14
-
-
-state 17
-	expr : REF .  (15)
-	expr : REF . PLUS expr  (17)
-
-	PLUS  shift 27
-	$end  reduce 15
-	FORWARD  reduce 15
-	BACKWARD  reduce 15
-	PRINT  reduce 15
-	RIGHT  reduce 15
-	LEFT  reduce 15
-	HOME  reduce 15
-	RPAR  reduce 15
-	MAKE  reduce 15
-	PRINTS  reduce 15
-
-
-state 18
-	cmd : FORWARD expr .  (6)
-
-	.  reduce 6
-
-
-state 19
-	cmd : BACKWARD expr .  (7)
-
-	.  reduce 7
-
-
-state 20
-	cmd : PRINT expr .  (10)
-
-	.  reduce 10
-
-
-state 21
-	cmd : RIGHT expr .  (8)
-
-	.  reduce 8
-
-
-state 22
-	cmd : LEFT expr .  (9)
-
-	.  reduce 9
-
-
-state 23
-	cmd : MAKE NAME . expr  (13)
+	expr4 : LPAR . expr RPAR  (25)
 
 	LPAR  shift 15
 	INT  shift 16
@@ -253,66 +203,312 @@ state 23
 	.  error
 
 	expr  goto 28
+	expr2  goto 19
+	expr3  goto 20
+	expr4  goto 21
+
+
+state 16
+	expr4 : INT .  (23)
+
+	.  reduce 23
+
+
+state 17
+	expr4 : REF .  (24)
+
+	.  reduce 24
+
+
+state 18
+	cmd : FORWARD expr .  (6)
+	expr : expr . PLUS expr2  (15)
+	expr : expr . MINUS expr2  (16)
+
+	PLUS  shift 29
+	MINUS  shift 30
+	$end  reduce 6
+	FORWARD  reduce 6
+	BACKWARD  reduce 6
+	PRINT  reduce 6
+	RIGHT  reduce 6
+	LEFT  reduce 6
+	HOME  reduce 6
+	MAKE  reduce 6
+	PRINTS  reduce 6
+
+
+state 19
+	expr : expr2 .  (14)
+
+	.  reduce 14
+
+
+state 20
+	expr2 : expr3 . POW expr2  (17)
+	expr2 : expr3 .  (18)
+	expr3 : expr3 . TIMES expr4  (19)
+	expr3 : expr3 . MOD expr4  (20)
+	expr3 : expr3 . DIV expr4  (21)
+
+	TIMES  shift 31
+	MOD  shift 32
+	DIV  shift 33
+	POW  shift 34
+	$end  reduce 18
+	FORWARD  reduce 18
+	BACKWARD  reduce 18
+	PRINT  reduce 18
+	RIGHT  reduce 18
+	LEFT  reduce 18
+	HOME  reduce 18
+	RPAR  reduce 18
+	PLUS  reduce 18
+	MINUS  reduce 18
+	MAKE  reduce 18
+	PRINTS  reduce 18
+
+
+state 21
+	expr3 : expr4 .  (22)
+
+	.  reduce 22
+
+
+state 22
+	cmd : BACKWARD expr .  (7)
+	expr : expr . PLUS expr2  (15)
+	expr : expr . MINUS expr2  (16)
+
+	PLUS  shift 29
+	MINUS  shift 30
+	$end  reduce 7
+	FORWARD  reduce 7
+	BACKWARD  reduce 7
+	PRINT  reduce 7
+	RIGHT  reduce 7
+	LEFT  reduce 7
+	HOME  reduce 7
+	MAKE  reduce 7
+	PRINTS  reduce 7
+
+
+state 23
+	cmd : PRINT expr .  (10)
+	expr : expr . PLUS expr2  (15)
+	expr : expr . MINUS expr2  (16)
+
+	PLUS  shift 29
+	MINUS  shift 30
+	$end  reduce 10
+	FORWARD  reduce 10
+	BACKWARD  reduce 10
+	PRINT  reduce 10
+	RIGHT  reduce 10
+	LEFT  reduce 10
+	HOME  reduce 10
+	MAKE  reduce 10
+	PRINTS  reduce 10
 
 
 state 24
+	cmd : RIGHT expr .  (8)
+	expr : expr . PLUS expr2  (15)
+	expr : expr . MINUS expr2  (16)
+
+	PLUS  shift 29
+	MINUS  shift 30
+	$end  reduce 8
+	FORWARD  reduce 8
+	BACKWARD  reduce 8
+	PRINT  reduce 8
+	RIGHT  reduce 8
+	LEFT  reduce 8
+	HOME  reduce 8
+	MAKE  reduce 8
+	PRINTS  reduce 8
+
+
+state 25
+	cmd : LEFT expr .  (9)
+	expr : expr . PLUS expr2  (15)
+	expr : expr . MINUS expr2  (16)
+
+	PLUS  shift 29
+	MINUS  shift 30
+	$end  reduce 9
+	FORWARD  reduce 9
+	BACKWARD  reduce 9
+	PRINT  reduce 9
+	RIGHT  reduce 9
+	LEFT  reduce 9
+	HOME  reduce 9
+	MAKE  reduce 9
+	PRINTS  reduce 9
+
+
+state 26
+	cmd : MAKE NAME . expr  (13)
+
+	LPAR  shift 15
+	INT  shift 16
+	REF  shift 17
+	.  error
+
+	expr  goto 35
+	expr2  goto 19
+	expr3  goto 20
+	expr4  goto 21
+
+
+state 27
 	cmd_seq : cmd_seq cmd .  (5)
 
 	.  reduce 5
 
 
-state 25
-	expr : LPAR expr . RPAR  (18)
-
-	RPAR  shift 29
-	.  error
-
-
-state 26
-	expr : INT PLUS . expr  (16)
-
-	LPAR  shift 15
-	INT  shift 16
-	REF  shift 17
-	.  error
-
-	expr  goto 30
-
-
-state 27
-	expr : REF PLUS . expr  (17)
-
-	LPAR  shift 15
-	INT  shift 16
-	REF  shift 17
-	.  error
-
-	expr  goto 31
-
-
 state 28
-	cmd : MAKE NAME expr .  (13)
+	expr : expr . PLUS expr2  (15)
+	expr : expr . MINUS expr2  (16)
+	expr4 : LPAR expr . RPAR  (25)
 
-	.  reduce 13
+	RPAR  shift 36
+	PLUS  shift 29
+	MINUS  shift 30
+	.  error
 
 
 state 29
-	expr : LPAR expr RPAR .  (18)
+	expr : expr PLUS . expr2  (15)
 
-	.  reduce 18
+	LPAR  shift 15
+	INT  shift 16
+	REF  shift 17
+	.  error
+
+	expr2  goto 37
+	expr3  goto 20
+	expr4  goto 21
 
 
 state 30
-	expr : INT PLUS expr .  (16)
+	expr : expr MINUS . expr2  (16)
+
+	LPAR  shift 15
+	INT  shift 16
+	REF  shift 17
+	.  error
+
+	expr2  goto 38
+	expr3  goto 20
+	expr4  goto 21
+
+
+state 31
+	expr3 : expr3 TIMES . expr4  (19)
+
+	LPAR  shift 15
+	INT  shift 16
+	REF  shift 17
+	.  error
+
+	expr4  goto 39
+
+
+state 32
+	expr3 : expr3 MOD . expr4  (20)
+
+	LPAR  shift 15
+	INT  shift 16
+	REF  shift 17
+	.  error
+
+	expr4  goto 40
+
+
+state 33
+	expr3 : expr3 DIV . expr4  (21)
+
+	LPAR  shift 15
+	INT  shift 16
+	REF  shift 17
+	.  error
+
+	expr4  goto 41
+
+
+state 34
+	expr2 : expr3 POW . expr2  (17)
+
+	LPAR  shift 15
+	INT  shift 16
+	REF  shift 17
+	.  error
+
+	expr2  goto 42
+	expr3  goto 20
+	expr4  goto 21
+
+
+state 35
+	cmd : MAKE NAME expr .  (13)
+	expr : expr . PLUS expr2  (15)
+	expr : expr . MINUS expr2  (16)
+
+	PLUS  shift 29
+	MINUS  shift 30
+	$end  reduce 13
+	FORWARD  reduce 13
+	BACKWARD  reduce 13
+	PRINT  reduce 13
+	RIGHT  reduce 13
+	LEFT  reduce 13
+	HOME  reduce 13
+	MAKE  reduce 13
+	PRINTS  reduce 13
+
+
+state 36
+	expr4 : LPAR expr RPAR .  (25)
+
+	.  reduce 25
+
+
+state 37
+	expr : expr PLUS expr2 .  (15)
+
+	.  reduce 15
+
+
+state 38
+	expr : expr MINUS expr2 .  (16)
 
 	.  reduce 16
 
 
-state 31
-	expr : REF PLUS expr .  (17)
+state 39
+	expr3 : expr3 TIMES expr4 .  (19)
+
+	.  reduce 19
+
+
+state 40
+	expr3 : expr3 MOD expr4 .  (20)
+
+	.  reduce 20
+
+
+state 41
+	expr3 : expr3 DIV expr4 .  (21)
+
+	.  reduce 21
+
+
+state 42
+	expr2 : expr3 POW expr2 .  (17)
 
 	.  reduce 17
 
 
-18 terminals, 7 nonterminals
-20 grammar rules, 32 states
+23 terminals, 10 nonterminals
+27 grammar rules, 43 states
