@@ -154,20 +154,23 @@ cmd:
 	FORWARD expr
 		{ SYSCALL (Logo.cFORWARD, [$2]) }
 | 	BACKWARD expr
-		{ NOP }
+		{ SYSCALL (Logo.cBACKWARD, [$2]) }
 |	RIGHT expr
 		{ SYSCALL (Logo.cRIGHT, [$2]) }
 | 	LEFT expr
-		{ NOP }
+		{ SYSCALL (Logo.cLEFT, [$2]) }
 |	PRINT expr
 		{ PRINT $2 }
 |	PRINTS
 		{ PRINTS $1 }
 |	HOME
-		{ NOP }
+		{ SYSCALL (Logo.cHOME, [])}
 |   MAKE NAME expr
-		{ NOP }
-
+		{ 
+			let var = get_var $2 in
+			let var = if var = -1 then make_var $2 else var in
+			MAKE(var,$3)
+		}
 ;
 
 /*TODO pour add analyser la grammaire pour l'associativité  5-2+3 != 5-(2+3)
@@ -180,41 +183,56 @@ S -> a					S  -> S+S'	(permet l'associativité à gauche)
            } devient ->	S' -> a
 S -> b                  S' -> b 
 						S' -> (S)
+
+type op =
+	| OP_ADD
+	| OP_SUB
+	| OP_MUL
+	| OP_DIV
+	| OP_MOD
+	| OP_POW
 */
 expr:
     expr2
         { $1 }
 |   expr PLUS expr2
-        { NONE }
+        { BINOP (OP_ADD, $1, $3) }
 |   expr MINUS expr2
-		{ NONE }
+        { BINOP (OP_SUB, $1, $3) }
 ;
 
 expr2:
-	expr3 POW expr2
-		{ NONE }
-|	expr3
-		{ NONE }
+    expr3 POW expr2
+        { BINOP (OP_POW, $1, $3) }
+|   expr3
+        { $1 }
 ;
 
 expr3: 
-    expr3 TIMES expr4	
-		{ NONE }
-|	expr3 MOD expr4
-		{ NONE }
-|	expr3 DIV expr4
-		{ NONE }
-|	expr4
-		{ NONE}
+    expr3 TIMES expr4    
+        { BINOP (OP_MUL, $1, $3) }
+|   expr3 MOD expr4
+        { BINOP (OP_MOD, $1, $3) }
+|   expr3 DIV expr4
+        { BINOP (OP_DIV, $1, $3) }
+|   expr4
+        { $1 }
 ;
 
 expr4: 
-	INT
+    INT
         { CST $1 }
 |   REF
-        { NONE }
+        {
+            let var = get_var $1 in
+            if var = -1 then
+                error ("La variable " ^ $1 ^ " n'est pas défini")
+            else
+                VAR var
+        }
 |   LPAR expr RPAR
-        { NONE }
+        { $2 }
 ;
+
 
 

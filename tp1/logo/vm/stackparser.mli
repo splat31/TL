@@ -24,11 +24,31 @@ type token =
   | DEBUG
   | GET_GLOB
   | SET_GLOB
-  | BOOL of (bool)
-  | INT of (int)
-  | FLOAT of (float)
-  | LABEL of (string)
-  | STR of (string)
+  | BOOL of (
+# 140 "stackparser.mly"
+        bool
+# 31 "stackparser.mli"
+)
+  | INT of (
+# 141 "stackparser.mly"
+        int
+# 36 "stackparser.mli"
+)
+  | FLOAT of (
+# 142 "stackparser.mly"
+        float
+# 41 "stackparser.mli"
+)
+  | LABEL of (
+# 143 "stackparser.mly"
+        string
+# 46 "stackparser.mli"
+)
+  | STR of (
+# 144 "stackparser.mly"
+        string
+# 51 "stackparser.mli"
+)
   | COMMA
   | SHARP
   | COLON
