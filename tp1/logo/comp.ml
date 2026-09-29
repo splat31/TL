@@ -86,7 +86,7 @@ let rec comp_cmd cmd =
 		(List.flatten (List.map comp_expr (List.rev args)))
 		@ [INVOKE cmd]
 	| MAKE(i,e)->
-		(comp_expr e) @ [SET i]
+		(comp_expr e) @ [SET_GLOB i]
 	| _ -> failwith "unsupported command!"
 	 
 
@@ -100,11 +100,21 @@ and comp_expr expr =
 		failwith "attempt to compile NONE expression!"
 	| CST n ->
 		[PUSH n]
-	| VAR ->
-	| BINOP -> 
+	| VAR i-> 
+		[GET_GLOB i]
+	| BINOP(opp, expr1, expr2) -> (comp_expr expr2) @ (comp_expr expr1)
+		@ (comp_binop opp)
 	| _ -> failwith "unsupported expression!"
 	 
-
+and comp_binop opp = 
+	match opp with
+	| OP_ADD -> [ADD]
+	| OP_SUB -> [SUB]
+	| OP_MUL -> [MUL]
+	| OP_DIV -> [DIV]
+	| OP_MOD -> [MOD]
+	| OP_POW -> [POW]
+	| _ -> failwith "unsupported binop"
 
 (** Compile the provided condition.
 	@param cond		Condition to translate.

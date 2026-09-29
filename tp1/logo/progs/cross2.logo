@@ -1,0 +1,21 @@
+home
+
+MAKE "x 0
+MAKE "y 10
+RIGHT :x
+FORWARD :y
+
+MAKE "x :x + 30
+MAKE "y :x + 10
+RIGHT :x
+FORWARD :y
+
+MAKE "x :x + 30
+MAKE "y :x + 10
+RIGHT :x
+FORWARD :y
+
+MAKE "x :x + 30
+MAKE "y :x + 10
+RIGHT :x
+FORWARD :y
