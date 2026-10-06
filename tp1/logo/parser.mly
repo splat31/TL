@@ -112,6 +112,16 @@
 
 %token LPAR
 %token RPAR
+%token LEFTC
+%token RIGHTC
+
+%token EQUAL
+%token DIFF
+%token LESS
+%token LESSEQ
+%token GREATER
+%token GREATEREQ
+
 %token PLUS
 %token MINUS
 %token TIMES
@@ -120,6 +130,9 @@
 %token POW
 
 %token MAKE
+%token REPEAT
+%token IF
+%token IFELSE
 
 %token<int> INT
 %token<string> NAME
@@ -165,6 +178,12 @@ cmd:
 		{ PRINTS $1 }
 |	HOME
 		{ SYSCALL (Logo.cHOME, [])}
+|	REPEAT expr LEFTC cmd_seq RIGHTC
+		{ REPEAT ($2, $4) }
+|  	IF cond LEFTC cmd_seq RIGHTC
+		{ IF ($2, $4, NOP) }
+|  	IFELSE cond LEFTC cmd_seq RIGHTC LEFTC cmd_seq RIGHTC
+		{ IF ($2, $4, $7) }
 |   MAKE NAME expr
 		{ 
 			let var = get_var $2 in
@@ -173,25 +192,6 @@ cmd:
 		}
 ;
 
-/*TODO pour add analyser la grammaire pour l'associativité  5-2+3 != 5-(2+3)
-
-
-add: en rajoutant un non terminal on peut régler le problème
-Pour le voir comme dans le cour: a=int b=ref
-						S  -> S'
-S -> a					S  -> S+S'	(permet l'associativité à gauche)
-           } devient ->	S' -> a
-S -> b                  S' -> b 
-						S' -> (S)
-
-type op =
-	| OP_ADD
-	| OP_SUB
-	| OP_MUL
-	| OP_DIV
-	| OP_MOD
-	| OP_POW
-*/
 expr:
     expr2
         { $1 }
@@ -233,6 +233,22 @@ expr4:
 |   LPAR expr RPAR
         { $2 }
 ;
+
+cond:
+	expr EQUAL expr
+		{ COMP (COMP_EQ, $1, $3)}
+|	expr DIFF expr
+		{ COMP (COMP_NE, $1, $3) }
+|	expr LESS expr
+		{ COMP (COMP_LT, $1, $3) }
+|	expr LESSEQ expr
+		{ COMP (COMP_LE, $1, $3) }
+|	expr GREATER expr
+		{ COMP (COMP_GT, $1, $3) }
+|	expr GREATEREQ expr
+		{ COMP (COMP_GE, $1, $3) }
+
+
 
 
 

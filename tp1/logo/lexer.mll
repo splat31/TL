@@ -43,15 +43,28 @@ rule token = parse
 |	'"' (id as x) { NAME x} 
 | 	"make"      { MAKE }
 |	':' (id as x) { REF x}
+|   "repeat" 	{ REPEAT }
+|   "if" 		{ IF }
+|   "ifelse" 		{ IFELSE }
 
-| '(' {LPAR}
-| ')' {RPAR}
-| '+' {PLUS}
-| '-' {MINUS}
-| '*' {TIMES}
-| '/' {DIV}
-| '%' {MOD}
-| '^' {POW}
+| '[' 	{LEFTC}
+| ']' 	{RIGHTC}
+| '(' 	{LPAR}
+| ')' 	{RPAR}
+| '+' 	{PLUS}
+| '-' 	{MINUS}
+| '*' 	{TIMES}
+| '/' 	{DIV}
+| '%' 	{MOD}
+| '^' 	{POW}
+
+| '=' 	{EQUAL}
+| '#' 	{DIFF}
+| '<' 	{LESS}
+| "<=" 	{LESSEQ}
+| '>' 	{GREATER}
+| ">=" 	{GREATEREQ}
+
 
 |	"print" blank* '"' ([^ '"']* as x) '"' { PRINTS x }
 

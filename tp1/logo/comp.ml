@@ -73,21 +73,56 @@ let add_fun name lab ast =
 	@param cmd	Command to compile.
 	@return		List of instructions. *)
 let rec comp_cmd cmd =
-	match cmd with
-	| NOP ->
-		[]
-	| SEQ(c1, c2) ->
-		(comp_cmd c1) @ (comp_cmd c2)
-	| PRINT e ->
-		(comp_expr e)@[INVOKE cPRINT]
-	| PRINTS s ->
-		[PUSH (add_string s); INVOKE cPRINTS]
-	| SYSCALL (cmd, args) ->
-		(List.flatten (List.map comp_expr (List.rev args)))
-		@ [INVOKE cmd]
-	| MAKE(i,e)->
-		(comp_expr e) @ [SET_GLOB i]
-	| _ -> failwith "unsupported command!"
+    match cmd with
+    | NOP ->
+        []
+    | SEQ(c1, c2) ->
+        (comp_cmd c1) @ (comp_cmd c2)
+    | PRINT e ->
+        (comp_expr e) @ [INVOKE cPRINT]
+    | PRINTS s ->
+        [PUSH (add_string s); INVOKE cPRINTS]
+    | SYSCALL (cmd, args) ->
+        (List.flatten (List.map comp_expr (List.rev args)))
+        @ [INVOKE cmd]
+    | MAKE(i,e) ->
+        (comp_expr e) @ [SET_GLOB i]
+    | REPEAT (n, cmd) ->
+				let n_var = alloc_var () in
+				let i_var = alloc_var () in
+				let l_begin = new_label () in
+				let l_end = new_label () in
+				(comp_expr n)
+				@ [SET_GLOB n_var]
+				@ [PUSH 0]
+				@ [SET_GLOB i_var]
+				@ [LABEL l_begin]
+				@ [GET_GLOB i_var]
+				@ [GET_GLOB n_var]
+				@ [GOTO_GE l_end]
+				@ (comp_cmd cmd)
+				@ [GET_GLOB i_var]
+				@ [PUSH 1]
+				@ [ADD]
+				@ [SET_GLOB i_var]
+				@ [GOTO l_begin]
+				@ [LABEL l_end]
+		| IF (cond, cmd_true, cmd_false) ->
+			let l_true = new_label () in
+			let l_false = new_label () in
+			let l_end = new_label () in
+
+			(comp_cond cond l_true l_false)
+			@ [LABEL l_true]
+			@ (comp_cmd cmd_true)
+			@ [GOTO l_end]
+			@ [LABEL l_false]
+			@ (comp_cmd cmd_false)
+			@ [LABEL l_end]
+	
+    | _ ->
+        failwith "unsupported command!"
+
 	 
 
 
@@ -116,6 +151,7 @@ and comp_binop opp =
 	| OP_POW -> [POW]
 	| _ -> failwith "unsupported binop"
 
+
 (** Compile the provided condition.
 	@param cond		Condition to translate.
 	@param l_true	Label to branch to if condition is true.
@@ -123,5 +159,21 @@ and comp_binop opp =
 	@return			Condition quadruplets. *)
 and comp_cond cond l_true l_false : Stackinst.inst list =
 	match cond with
+    | COMP (op, e1, e2) ->
+        (comp_expr e2)
+        @ (comp_expr e1)
+        @ (
+            match op with
+            | COMP_EQ -> [GOTO_EQ l_true]
+            | COMP_NE -> [GOTO_NE l_true]
+            | COMP_LT -> [GOTO_LT l_true]
+            | COMP_LE -> [GOTO_LE l_true]
+            | COMP_GT -> [GOTO_GT l_true]
+            | COMP_GE -> [GOTO_GE l_true]
+        )
+        @ [GOTO l_false]
+
+    | NO_COND ->
+        [GOTO l_false]
 	| _ -> failwith "unsupported condition!"
 	 
