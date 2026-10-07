@@ -130,6 +130,8 @@
 %token POW
 
 %token MAKE
+%token TO
+%token END
 %token REPEAT
 %token IF
 %token IFELSE
@@ -184,6 +186,10 @@ cmd:
 		{ IF ($2, $4, NOP) }
 |  	IFELSE cond LEFTC cmd_seq RIGHTC LEFTC cmd_seq RIGHTC
 		{ IF ($2, $4, $7) }
+|	TO NAME cmd_seq END
+		{
+			NOP
+		}
 |   MAKE NAME expr
 		{ 
 			let var = get_var $2 in

@@ -45,7 +45,9 @@ rule token = parse
 |	':' (id as x) { REF x}
 |   "repeat" 	{ REPEAT }
 |   "if" 		{ IF }
-|   "ifelse" 		{ IFELSE }
+|   "ifelse" 	{ IFELSE }
+|	"to" 		{TO}
+|	"end"		{END}
 
 | '[' 	{LEFTC}
 | ']' 	{RIGHTC}
