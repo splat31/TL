@@ -69,6 +69,13 @@ let new_label _ =
 let add_fun name lab ast =
 	fun_list := (name, lab, ast)::!fun_list
 
+let get_fun name =
+    try
+        let (_, lab, _) = List.find (fun (n, _, _) -> n = name) !fun_list in
+        lab
+    with Not_found ->
+        -1
+				
 (** Compile a command.
 	@param cmd	Command to compile.
 	@return		List of instructions. *)
@@ -119,7 +126,8 @@ let rec comp_cmd cmd =
 			@ [LABEL l_false]
 			@ (comp_cmd cmd_false)
 			@ [LABEL l_end]
-	
+		| CALL_CMD (name, _, _) ->
+    	[CALL (get_fun name)]
     | _ ->
         failwith "unsupported command!"
 

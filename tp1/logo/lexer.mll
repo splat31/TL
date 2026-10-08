@@ -69,9 +69,9 @@ rule token = parse
 
 
 |	"print" blank* '"' ([^ '"']* as x) '"' { PRINTS x }
-
 |	dec	as n	{ INT (int_of_string n) }
 
 |	';' [^'\n']* '\n'	{ incr line; token lexbuf }
 |	eof					{ EOF }
+| (id as x) { IDSUBP x }
 |	_ as c				{ raise (LexerError (sprintf "illegal char '%c'" c)) }

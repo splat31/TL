@@ -139,6 +139,7 @@
 %token<int> INT
 %token<string> NAME
 %token <string> REF
+%token <string> IDSUBP
 %token <string> PRINTS
 
 %start program
@@ -147,15 +148,35 @@
 %%
 
 program:
-	opt_cmd_seq
-		{ $1 }
+    opt_cmd_seq
+        { $1 }
 ;
 
 opt_cmd_seq:
-	/* empty */
-		{ NOP }
-|	cmd_seq
-		{ $1 }
+    /* empty */
+        { NOP }
+|   sub_prog_seq
+        { $1 }
+;
+
+sub_prog_seq:
+    sub_prog
+        { $1 }
+|   sub_prog_seq sub_prog
+        { SEQ($1, $2) }
+;
+
+sub_prog:
+    cmd
+        { $1 }
+|   TO IDSUBP cmd_seq END
+        {
+            if get_fun $2 <> -1 then
+                error ("Le sous-programme " ^ $2 ^ " est deja defini")
+            else
+                let _ = make_fun $2 $3 in
+                NOP
+        }
 ;
 
 cmd_seq:
@@ -186,16 +207,19 @@ cmd:
 		{ IF ($2, $4, NOP) }
 |  	IFELSE cond LEFTC cmd_seq RIGHTC LEFTC cmd_seq RIGHTC
 		{ IF ($2, $4, $7) }
-|	TO NAME cmd_seq END
-		{
-			NOP
-		}
 |   MAKE NAME expr
 		{ 
 			let var = get_var $2 in
 			let var = if var = -1 then make_var $2 else var in
 			MAKE(var,$3)
 		}
+| IDSUBP
+    {
+        if get_fun $1 = -1 then
+            error ("sous programme non def")
+        else
+            CALL_CMD ($1, 0, [])
+    }
 ;
 
 expr:
