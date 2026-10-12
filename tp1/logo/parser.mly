@@ -215,10 +215,11 @@ cmd:
 		}
 | IDSUBP
     {
-        if get_fun $1 = -1 then
+         let label = get_fun $1 in
+        if label = -1 then
             error ("sous programme non def")
         else
-            CALL_CMD ($1, 0, [])
+            CALL_CMD ($1, label, [])
     }
 ;
 
@@ -278,7 +279,14 @@ cond:
 |	expr GREATEREQ expr
 		{ COMP (COMP_GE, $1, $3) }
 
-
+/*
+Rappel pour compiler:
+make
+./logocc ./progs/monprog.logo
+./logocc -ast ./progs/monprog.logo (pour les arbres)
+./vm/stack-as progs/monprog.s
+./logoapp progs/monprog.exe
+*/
 
 
 

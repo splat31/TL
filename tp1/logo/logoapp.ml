@@ -127,6 +127,7 @@ let display _ =
 		| _ ->
 			ignore (Sys.command ("firefox " ^ url))
 			(*ignore (Sys.command ("google-chrome " ^ url))*)
+			
 		)
 	| "Win32" ->
 		ignore (Sys.command ("start \"\" \"" ^ url ^ "\""))
