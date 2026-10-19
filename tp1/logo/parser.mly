@@ -169,16 +169,25 @@ sub_prog_seq:
 sub_prog:
     cmd
         { $1 }
-|   TO IDSUBP cmd_seq END
-        {
-            if get_fun $2 <> -1 then
-                error ("Le sous-programme " ^ $2 ^ " est deja defini")
-            else
-                let _ = make_fun $2 $3 in
-                NOP
-        }
+|   TO subprog_header cmd_seq END
+    {
+      let (name, params) = $2 in
+      let body = $3 in
+      let _ = make_fun name body in
+      release_params params;
+      NOP
+    }
 ;
 
+subprog_header:
+    IDSUBP params
+    {
+      if get_fun $1 <> -1 then
+        error ("Le sous-programme " ^ $1 ^ " est deja defini");
+      declare_params $2;
+      ($1, $2)
+    }
+;
 cmd_seq:
 	cmd
 		{ $1 }
@@ -213,13 +222,13 @@ cmd:
 			let var = if var = -1 then make_var $2 else var in
 			MAKE(var,$3)
 		}
-| IDSUBP
+| IDSUBP args
     {
-         let label = get_fun $1 in
+      let label = get_fun $1 in
         if label = -1 then
             error ("sous programme non def")
         else
-            CALL_CMD ($1, label, [])
+            CALL_CMD ($1, label, $2)
     }
 ;
 
@@ -255,11 +264,13 @@ expr4:
         { CST $1 }
 |   REF
         {
-            let var = get_var $1 in
-            if var = -1 then
-                error ("La variable " ^ $1 ^ " n'est pas défini")
-            else
-                VAR var
+			let var = get_var $1 in
+			if var = -1 then
+			error ("La variable " ^ $1 ^ " n'est pas définie");
+			if is_local $1 then
+			LOCAL_VAR var
+			else
+			VAR var
         }
 |   LPAR expr RPAR
         { $2 }
@@ -278,7 +289,19 @@ cond:
 		{ COMP (COMP_GT, $1, $3) }
 |	expr GREATEREQ expr
 		{ COMP (COMP_GE, $1, $3) }
-
+;
+args: 
+    /* empty */
+        { [] }
+|   args expr
+        { $1 @ [$2] }
+;
+params:
+    /* empty */
+        { [] }
+|   params REF
+        { $1 @ [$2] }
+;
 /*
 Rappel pour compiler:
 make

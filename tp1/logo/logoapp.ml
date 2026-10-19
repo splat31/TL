@@ -113,6 +113,9 @@ let contains_dot_dot s =
 
 (** Run the browser on the served pages. *)
 let display _ =
+	print_endline
+      "Ouvre cette adresse dans ton navigateur : http://localhost:4040/index.html";
+    flush stdout;
 	verbose (asis "DEBUG: running command!\n");
 	let url = "http://localhost:4040/index.html" in
 	match Sys.os_type with
@@ -125,8 +128,8 @@ let display _ =
 		| "Darwin" ->
 			ignore (Sys.command ("open " ^ url))
 		| _ ->
-			ignore (Sys.command ("firefox " ^ url))
-			(*ignore (Sys.command ("google-chrome " ^ url))*)
+			(*ignore (Sys.command ("firefox " ^ url))*)
+			ignore (Sys.command ("google-chrome " ^ url))
 			
 		)
 	| "Win32" ->

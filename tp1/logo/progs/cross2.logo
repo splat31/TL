@@ -1,21 +1,31 @@
+make "a 0
+make "l 20
+
 home
+right :a
+print :l
+forward :l
+make "a :a + 90
+make "l :l * 2
 
-MAKE "x 0
-MAKE "y 10
-RIGHT :x
-FORWARD :y
+home
+right :a
+print :l
+forward :l
+make "a :a + 90
+make "l :l - 20
 
-MAKE "x :x + 30
-MAKE "y :x + 10
-RIGHT :x
-FORWARD :y
+home
+right :a
+print :l
+forward :l
+make "a :a + 90
+make "l :l * 2
 
-MAKE "x :x + 30
-MAKE "y :x + 10
-RIGHT :x
-FORWARD :y
+home
+right :a
+print :l
+forward :l
+make "a :a + 90
+make "l :l - 20
 
-MAKE "x :x + 30
-MAKE "y :x + 10
-RIGHT :x
-FORWARD :y

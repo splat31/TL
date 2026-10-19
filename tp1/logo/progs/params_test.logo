@@ -1,0 +1,7 @@
+to muladd :x :y :z
+    print :x
+    print :y
+    print :z
+end
+
+muladd 1 2 3

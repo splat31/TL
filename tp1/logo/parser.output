@@ -9,48 +9,56 @@
    5               | sub_prog_seq sub_prog
 
    6  sub_prog : cmd
-   7           | TO IDSUBP cmd_seq END
+   7           | TO subprog_header cmd_seq END
 
-   8  cmd_seq : cmd
-   9          | cmd_seq cmd
+   8  subprog_header : IDSUBP params
 
-  10  cmd : FORWARD expr
-  11      | BACKWARD expr
-  12      | RIGHT expr
-  13      | LEFT expr
-  14      | PRINT expr
-  15      | PRINTS
-  16      | HOME
-  17      | REPEAT expr LEFTC cmd_seq RIGHTC
-  18      | IF cond LEFTC cmd_seq RIGHTC
-  19      | IFELSE cond LEFTC cmd_seq RIGHTC LEFTC cmd_seq RIGHTC
-  20      | MAKE NAME expr
-  21      | IDSUBP
+   9  cmd_seq : cmd
+  10          | cmd_seq cmd
 
-  22  expr : expr2
-  23       | expr PLUS expr2
-  24       | expr MINUS expr2
+  11  cmd : FORWARD expr
+  12      | BACKWARD expr
+  13      | RIGHT expr
+  14      | LEFT expr
+  15      | PRINT expr
+  16      | PRINTS
+  17      | HOME
+  18      | REPEAT expr LEFTC cmd_seq RIGHTC
+  19      | IF cond LEFTC cmd_seq RIGHTC
+  20      | IFELSE cond LEFTC cmd_seq RIGHTC LEFTC cmd_seq RIGHTC
+  21      | MAKE NAME expr
+  22      | IDSUBP args
 
-  25  expr2 : expr3 POW expr2
-  26        | expr3
+  23  expr : expr2
+  24       | expr PLUS expr2
+  25       | expr MINUS expr2
 
-  27  expr3 : expr3 TIMES expr4
-  28        | expr3 MOD expr4
-  29        | expr3 DIV expr4
-  30        | expr4
+  26  expr2 : expr3 POW expr2
+  27        | expr3
 
-  31  expr4 : INT
-  32        | REF
-  33        | LPAR expr RPAR
+  28  expr3 : expr3 TIMES expr4
+  29        | expr3 MOD expr4
+  30        | expr3 DIV expr4
+  31        | expr4
 
-  34  cond : expr EQUAL expr
-  35       | expr DIFF expr
-  36       | expr LESS expr
-  37       | expr LESSEQ expr
-  38       | expr GREATER expr
-  39       | expr GREATEREQ expr
+  32  expr4 : INT
+  33        | REF
+  34        | LPAR expr RPAR
 
-  40  %entry% : '\001' program
+  35  cond : expr EQUAL expr
+  36       | expr DIFF expr
+  37       | expr LESS expr
+  38       | expr LESSEQ expr
+  39       | expr GREATER expr
+  40       | expr GREATEREQ expr
+
+  41  args :
+  42       | args expr
+
+  43  params :
+  44         | params REF
+
+  45  %entry% : '\001' program
 
 state 0
 	$accept : . %entry% $end  (0)
@@ -62,7 +70,7 @@ state 0
 
 
 state 1
-	%entry% : '\001' . program  (40)
+	%entry% : '\001' . program  (45)
 	opt_cmd_seq : .  (2)
 
 	FORWARD  shift 3
@@ -94,7 +102,7 @@ state 2
 
 
 state 3
-	cmd : FORWARD . expr  (10)
+	cmd : FORWARD . expr  (11)
 
 	LPAR  shift 21
 	INT  shift 22
@@ -108,7 +116,7 @@ state 3
 
 
 state 4
-	cmd : BACKWARD . expr  (11)
+	cmd : BACKWARD . expr  (12)
 
 	LPAR  shift 21
 	INT  shift 22
@@ -122,7 +130,7 @@ state 4
 
 
 state 5
-	cmd : PRINT . expr  (14)
+	cmd : PRINT . expr  (15)
 
 	LPAR  shift 21
 	INT  shift 22
@@ -136,7 +144,7 @@ state 5
 
 
 state 6
-	cmd : RIGHT . expr  (12)
+	cmd : RIGHT . expr  (13)
 
 	LPAR  shift 21
 	INT  shift 22
@@ -150,7 +158,7 @@ state 6
 
 
 state 7
-	cmd : LEFT . expr  (13)
+	cmd : LEFT . expr  (14)
 
 	LPAR  shift 21
 	INT  shift 22
@@ -164,85 +172,90 @@ state 7
 
 
 state 8
-	cmd : HOME .  (16)
+	cmd : HOME .  (17)
 
-	.  reduce 16
+	.  reduce 17
 
 
 state 9
-	cmd : MAKE . NAME expr  (20)
+	cmd : MAKE . NAME expr  (21)
 
 	NAME  shift 32
 	.  error
 
 
 state 10
-	sub_prog : TO . IDSUBP cmd_seq END  (7)
+	sub_prog : TO . subprog_header cmd_seq END  (7)
 
 	IDSUBP  shift 33
 	.  error
 
+	subprog_header  goto 34
+
 
 state 11
-	cmd : REPEAT . expr LEFTC cmd_seq RIGHTC  (17)
+	cmd : REPEAT . expr LEFTC cmd_seq RIGHTC  (18)
 
 	LPAR  shift 21
 	INT  shift 22
 	REF  shift 23
 	.  error
 
-	expr  goto 34
+	expr  goto 35
 	expr2  goto 25
 	expr3  goto 26
 	expr4  goto 27
 
 
 state 12
-	cmd : IF . cond LEFTC cmd_seq RIGHTC  (18)
+	cmd : IF . cond LEFTC cmd_seq RIGHTC  (19)
 
 	LPAR  shift 21
 	INT  shift 22
 	REF  shift 23
 	.  error
 
-	expr  goto 35
-	cond  goto 36
-	expr2  goto 25
-	expr3  goto 26
-	expr4  goto 27
-
-
-state 13
-	cmd : IFELSE . cond LEFTC cmd_seq RIGHTC LEFTC cmd_seq RIGHTC  (19)
-
-	LPAR  shift 21
-	INT  shift 22
-	REF  shift 23
-	.  error
-
-	expr  goto 35
+	expr  goto 36
 	cond  goto 37
 	expr2  goto 25
 	expr3  goto 26
 	expr4  goto 27
 
 
-state 14
-	cmd : IDSUBP .  (21)
+state 13
+	cmd : IFELSE . cond LEFTC cmd_seq RIGHTC LEFTC cmd_seq RIGHTC  (20)
 
-	.  reduce 21
+	LPAR  shift 21
+	INT  shift 22
+	REF  shift 23
+	.  error
+
+	expr  goto 36
+	cond  goto 38
+	expr2  goto 25
+	expr3  goto 26
+	expr4  goto 27
+
+
+state 14
+	cmd : IDSUBP . args  (22)
+	args : .  (41)
+
+	.  reduce 41
+
+	args  goto 39
 
 
 state 15
-	cmd : PRINTS .  (15)
+	cmd : PRINTS .  (16)
 
-	.  reduce 15
+	.  reduce 16
 
 
 state 16
-	%entry% : '\001' program .  (40)
+	%entry% : '\001' program .  (45)
 
-	.  reduce 40
+	.  reduce 45
 
 
 state 17
@@ -270,7 +283,7 @@ state 18
 	PRINTS  shift 15
 	$end  reduce 3
 
-	sub_prog  goto 38
+	sub_prog  goto 40
 	cmd  goto 20
 
 
@@ -287,114 +300,38 @@ state 20
 
 
 state 21
-	expr4 : LPAR . expr RPAR  (33)
+	expr4 : LPAR . expr RPAR  (34)
 
 	LPAR  shift 21
 	INT  shift 22
 	REF  shift 23
 	.  error
 
-	expr  goto 39
+	expr  goto 41
 	expr2  goto 25
 	expr3  goto 26
 	expr4  goto 27
 
 
 state 22
-	expr4 : INT .  (31)
-
-	.  reduce 31
-
-
-state 23
-	expr4 : REF .  (32)
+	expr4 : INT .  (32)
 
 	.  reduce 32
 
 
+state 23
+	expr4 : REF .  (33)
+
+	.  reduce 33
+
+
 state 24
-	cmd : FORWARD expr .  (10)
-	expr : expr . PLUS expr2  (23)
-	expr : expr . MINUS expr2  (24)
+	cmd : FORWARD expr .  (11)
+	expr : expr . PLUS expr2  (24)
+	expr : expr . MINUS expr2  (25)
 
-	PLUS  shift 40
-	MINUS  shift 41
-	$end  reduce 10
-	FORWARD  reduce 10
-	BACKWARD  reduce 10
-	PRINT  reduce 10
-	RIGHT  reduce 10
-	LEFT  reduce 10
-	HOME  reduce 10
-	RIGHTC  reduce 10
-	MAKE  reduce 10
-	TO  reduce 10
-	END  reduce 10
-	REPEAT  reduce 10
-	IF  reduce 10
-	IFELSE  reduce 10
-	IDSUBP  reduce 10
-	PRINTS  reduce 10
-
-
-state 25
-	expr : expr2 .  (22)
-
-	.  reduce 22
-
-
-state 26
-	expr2 : expr3 . POW expr2  (25)
-	expr2 : expr3 .  (26)
-	expr3 : expr3 . TIMES expr4  (27)
-	expr3 : expr3 . MOD expr4  (28)
-	expr3 : expr3 . DIV expr4  (29)
-
-	TIMES  shift 42
-	MOD  shift 43
-	DIV  shift 44
-	POW  shift 45
-	$end  reduce 26
-	FORWARD  reduce 26
-	BACKWARD  reduce 26
-	PRINT  reduce 26
-	RIGHT  reduce 26
-	LEFT  reduce 26
-	HOME  reduce 26
-	RPAR  reduce 26
-	LEFTC  reduce 26
-	RIGHTC  reduce 26
-	EQUAL  reduce 26
-	DIFF  reduce 26
-	LESS  reduce 26
-	LESSEQ  reduce 26
-	GREATER  reduce 26
-	GREATEREQ  reduce 26
-	PLUS  reduce 26
-	MINUS  reduce 26
-	MAKE  reduce 26
-	TO  reduce 26
-	END  reduce 26
-	REPEAT  reduce 26
-	IF  reduce 26
-	IFELSE  reduce 26
-	IDSUBP  reduce 26
-	PRINTS  reduce 26
-
-
-state 27
-	expr3 : expr4 .  (30)
-
-	.  reduce 30
-
-
-state 28
-	cmd : BACKWARD expr .  (11)
-	expr : expr . PLUS expr2  (23)
-	expr : expr . MINUS expr2  (24)
-
-	PLUS  shift 40
-	MINUS  shift 41
+	PLUS  shift 42
+	MINUS  shift 43
 	$end  reduce 11
 	FORWARD  reduce 11
 	BACKWARD  reduce 11
@@ -413,38 +350,67 @@ state 28
 	PRINTS  reduce 11
 
 
-state 29
-	cmd : PRINT expr .  (14)
-	expr : expr . PLUS expr2  (23)
-	expr : expr . MINUS expr2  (24)
+state 25
+	expr : expr2 .  (23)
 
-	PLUS  shift 40
-	MINUS  shift 41
-	$end  reduce 14
-	FORWARD  reduce 14
-	BACKWARD  reduce 14
-	PRINT  reduce 14
-	RIGHT  reduce 14
-	LEFT  reduce 14
-	HOME  reduce 14
-	RIGHTC  reduce 14
-	MAKE  reduce 14
-	TO  reduce 14
-	END  reduce 14
-	REPEAT  reduce 14
-	IF  reduce 14
-	IFELSE  reduce 14
-	IDSUBP  reduce 14
-	PRINTS  reduce 14
+	.  reduce 23
 
 
-state 30
-	cmd : RIGHT expr .  (12)
-	expr : expr . PLUS expr2  (23)
-	expr : expr . MINUS expr2  (24)
+state 26
+	expr2 : expr3 . POW expr2  (26)
+	expr2 : expr3 .  (27)
+	expr3 : expr3 . TIMES expr4  (28)
+	expr3 : expr3 . MOD expr4  (29)
+	expr3 : expr3 . DIV expr4  (30)
 
-	PLUS  shift 40
-	MINUS  shift 41
+	TIMES  shift 44
+	MOD  shift 45
+	DIV  shift 46
+	POW  shift 47
+	$end  reduce 27
+	FORWARD  reduce 27
+	BACKWARD  reduce 27
+	PRINT  reduce 27
+	RIGHT  reduce 27
+	LEFT  reduce 27
+	HOME  reduce 27
+	LPAR  reduce 27
+	RPAR  reduce 27
+	LEFTC  reduce 27
+	RIGHTC  reduce 27
+	EQUAL  reduce 27
+	DIFF  reduce 27
+	LESS  reduce 27
+	LESSEQ  reduce 27
+	GREATER  reduce 27
+	GREATEREQ  reduce 27
+	PLUS  reduce 27
+	MINUS  reduce 27
+	MAKE  reduce 27
+	TO  reduce 27
+	END  reduce 27
+	REPEAT  reduce 27
+	IF  reduce 27
+	IFELSE  reduce 27
+	INT  reduce 27
+	REF  reduce 27
+	IDSUBP  reduce 27
+	PRINTS  reduce 27
+
+
+state 27
+	expr3 : expr4 .  (31)
+
+	.  reduce 31
+
+
+state 28
+	cmd : BACKWARD expr .  (12)
+	expr : expr . PLUS expr2  (24)
+	expr : expr . MINUS expr2  (25)
+
+	PLUS  shift 42
+	MINUS  shift 43
 	$end  reduce 12
 	FORWARD  reduce 12
 	BACKWARD  reduce 12
@@ -463,13 +429,38 @@ state 30
 	PRINTS  reduce 12
 
 
-state 31
-	cmd : LEFT expr .  (13)
-	expr : expr . PLUS expr2  (23)
-	expr : expr . MINUS expr2  (24)
+state 29
+	cmd : PRINT expr .  (15)
+	expr : expr . PLUS expr2  (24)
+	expr : expr . MINUS expr2  (25)
 
-	PLUS  shift 40
-	MINUS  shift 41
+	PLUS  shift 42
+	MINUS  shift 43
+	$end  reduce 15
+	FORWARD  reduce 15
+	BACKWARD  reduce 15
+	PRINT  reduce 15
+	RIGHT  reduce 15
+	LEFT  reduce 15
+	HOME  reduce 15
+	RIGHTC  reduce 15
+	MAKE  reduce 15
+	TO  reduce 15
+	END  reduce 15
+	REPEAT  reduce 15
+	IF  reduce 15
+	IFELSE  reduce 15
+	IDSUBP  reduce 15
+	PRINTS  reduce 15
+
+
+state 30
+	cmd : RIGHT expr .  (13)
+	expr : expr . PLUS expr2  (24)
+	expr : expr . MINUS expr2  (25)
+
+	PLUS  shift 42
+	MINUS  shift 43
 	$end  reduce 13
 	FORWARD  reduce 13
 	BACKWARD  reduce 13
@@ -488,22 +479,56 @@ state 31
 	PRINTS  reduce 13
 
 
+state 31
+	cmd : LEFT expr .  (14)
+	expr : expr . PLUS expr2  (24)
+	expr : expr . MINUS expr2  (25)
+
+	PLUS  shift 42
+	MINUS  shift 43
+	$end  reduce 14
+	FORWARD  reduce 14
+	BACKWARD  reduce 14
+	PRINT  reduce 14
+	RIGHT  reduce 14
+	LEFT  reduce 14
+	HOME  reduce 14
+	RIGHTC  reduce 14
+	MAKE  reduce 14
+	TO  reduce 14
+	END  reduce 14
+	REPEAT  reduce 14
+	IF  reduce 14
+	IFELSE  reduce 14
+	IDSUBP  reduce 14
+	PRINTS  reduce 14
+
+
 state 32
-	cmd : MAKE NAME . expr  (20)
+	cmd : MAKE NAME . expr  (21)
 
 	LPAR  shift 21
 	INT  shift 22
 	REF  shift 23
 	.  error
 
-	expr  goto 46
+	expr  goto 48
 	expr2  goto 25
 	expr3  goto 26
 	expr4  goto 27
 
 
 state 33
-	sub_prog : TO IDSUBP . cmd_seq END  (7)
+	subprog_header : IDSUBP . params  (8)
+	params : .  (43)
+
+	.  reduce 43
+
+	params  goto 49
+
+
+state 34
+	sub_prog : TO subprog_header . cmd_seq END  (7)
 
 	FORWARD  shift 3
 	BACKWARD  shift 4
@@ -519,134 +544,118 @@ state 33
 	PRINTS  shift 15
 	.  error
 
-	cmd  goto 47
-	cmd_seq  goto 48
-
-
-state 34
-	cmd : REPEAT expr . LEFTC cmd_seq RIGHTC  (17)
-	expr : expr . PLUS expr2  (23)
-	expr : expr . MINUS expr2  (24)
-
-	LEFTC  shift 49
-	PLUS  shift 40
-	MINUS  shift 41
-	.  error
+	cmd  goto 50
+	cmd_seq  goto 51
 
 
 state 35
-	expr : expr . PLUS expr2  (23)
-	expr : expr . MINUS expr2  (24)
-	cond : expr . EQUAL expr  (34)
-	cond : expr . DIFF expr  (35)
-	cond : expr . LESS expr  (36)
-	cond : expr . LESSEQ expr  (37)
-	cond : expr . GREATER expr  (38)
-	cond : expr . GREATEREQ expr  (39)
+	cmd : REPEAT expr . LEFTC cmd_seq RIGHTC  (18)
+	expr : expr . PLUS expr2  (24)
+	expr : expr . MINUS expr2  (25)
 
-	EQUAL  shift 50
-	DIFF  shift 51
-	LESS  shift 52
-	LESSEQ  shift 53
-	GREATER  shift 54
-	GREATEREQ  shift 55
-	PLUS  shift 40
-	MINUS  shift 41
+	LEFTC  shift 52
+	PLUS  shift 42
+	MINUS  shift 43
 	.  error
 
 
 state 36
-	cmd : IF cond . LEFTC cmd_seq RIGHTC  (18)
+	expr : expr . PLUS expr2  (24)
+	expr : expr . MINUS expr2  (25)
+	cond : expr . EQUAL expr  (35)
+	cond : expr . DIFF expr  (36)
+	cond : expr . LESS expr  (37)
+	cond : expr . LESSEQ expr  (38)
+	cond : expr . GREATER expr  (39)
+	cond : expr . GREATEREQ expr  (40)
 
-	LEFTC  shift 56
+	EQUAL  shift 53
+	DIFF  shift 54
+	LESS  shift 55
+	LESSEQ  shift 56
+	GREATER  shift 57
+	GREATEREQ  shift 58
+	PLUS  shift 42
+	MINUS  shift 43
 	.  error
 
 
 state 37
-	cmd : IFELSE cond . LEFTC cmd_seq RIGHTC LEFTC cmd_seq RIGHTC  (19)
+	cmd : IF cond . LEFTC cmd_seq RIGHTC  (19)
 
-	LEFTC  shift 57
+	LEFTC  shift 59
 	.  error
 
 
 state 38
+	cmd : IFELSE cond . LEFTC cmd_seq RIGHTC LEFTC cmd_seq RIGHTC  (20)
+
+	LEFTC  shift 60
+	.  error
+
+
+state 39
+	cmd : IDSUBP args .  (22)
+	args : args . expr  (42)
+
+	LPAR  shift 21
+	INT  shift 22
+	REF  shift 23
+	$end  reduce 22
+	FORWARD  reduce 22
+	BACKWARD  reduce 22
+	PRINT  reduce 22
+	RIGHT  reduce 22
+	LEFT  reduce 22
+	HOME  reduce 22
+	RIGHTC  reduce 22
+	MAKE  reduce 22
+	TO  reduce 22
+	END  reduce 22
+	REPEAT  reduce 22
+	IF  reduce 22
+	IFELSE  reduce 22
+	IDSUBP  reduce 22
+	PRINTS  reduce 22
+
+	expr  goto 61
+	expr2  goto 25
+	expr3  goto 26
+	expr4  goto 27
+
+
+state 40
 	sub_prog_seq : sub_prog_seq sub_prog .  (5)
 
 	.  reduce 5
 
 
-state 39
-	expr : expr . PLUS expr2  (23)
-	expr : expr . MINUS expr2  (24)
-	expr4 : LPAR expr . RPAR  (33)
-
-	RPAR  shift 58
-	PLUS  shift 40
-	MINUS  shift 41
-	.  error
-
-
-state 40
-	expr : expr PLUS . expr2  (23)
-
-	LPAR  shift 21
-	INT  shift 22
-	REF  shift 23
-	.  error
-
-	expr2  goto 59
-	expr3  goto 26
-	expr4  goto 27
-
-
 state 41
-	expr : expr MINUS . expr2  (24)
+	expr : expr . PLUS expr2  (24)
+	expr : expr . MINUS expr2  (25)
+	expr4 : LPAR expr . RPAR  (34)
 
-	LPAR  shift 21
-	INT  shift 22
-	REF  shift 23
+	RPAR  shift 62
+	PLUS  shift 42
+	MINUS  shift 43
 	.  error
-
-	expr2  goto 60
-	expr3  goto 26
-	expr4  goto 27
 
 
 state 42
-	expr3 : expr3 TIMES . expr4  (27)
+	expr : expr PLUS . expr2  (24)
 
 	LPAR  shift 21
 	INT  shift 22
 	REF  shift 23
 	.  error
 
-	expr4  goto 61
+	expr2  goto 63
+	expr3  goto 26
+	expr4  goto 27
 
 
 state 43
-	expr3 : expr3 MOD . expr4  (28)
-
-	LPAR  shift 21
-	INT  shift 22
-	REF  shift 23
-	.  error
-
-	expr4  goto 62
-
-
-state 44
-	expr3 : expr3 DIV . expr4  (29)
-
-	LPAR  shift 21
-	INT  shift 22
-	REF  shift 23
-	.  error
-
-	expr4  goto 63
-
-
-state 45
-	expr2 : expr3 POW . expr2  (25)
+	expr : expr MINUS . expr2  (25)
 
 	LPAR  shift 21
 	INT  shift 22
@@ -658,61 +667,126 @@ state 45
 	expr4  goto 27
 
 
-state 46
-	cmd : MAKE NAME expr .  (20)
-	expr : expr . PLUS expr2  (23)
-	expr : expr . MINUS expr2  (24)
+state 44
+	expr3 : expr3 TIMES . expr4  (28)
 
-	PLUS  shift 40
-	MINUS  shift 41
-	$end  reduce 20
-	FORWARD  reduce 20
-	BACKWARD  reduce 20
-	PRINT  reduce 20
-	RIGHT  reduce 20
-	LEFT  reduce 20
-	HOME  reduce 20
-	RIGHTC  reduce 20
-	MAKE  reduce 20
-	TO  reduce 20
-	END  reduce 20
-	REPEAT  reduce 20
-	IF  reduce 20
-	IFELSE  reduce 20
-	IDSUBP  reduce 20
-	PRINTS  reduce 20
+	LPAR  shift 21
+	INT  shift 22
+	REF  shift 23
+	.  error
+
+	expr4  goto 65
+
+
+state 45
+	expr3 : expr3 MOD . expr4  (29)
+
+	LPAR  shift 21
+	INT  shift 22
+	REF  shift 23
+	.  error
+
+	expr4  goto 66
+
+
+state 46
+	expr3 : expr3 DIV . expr4  (30)
+
+	LPAR  shift 21
+	INT  shift 22
+	REF  shift 23
+	.  error
+
+	expr4  goto 67
 
 
 state 47
-	cmd_seq : cmd .  (8)
+	expr2 : expr3 POW . expr2  (26)
 
-	.  reduce 8
+	LPAR  shift 21
+	INT  shift 22
+	REF  shift 23
+	.  error
+
+	expr2  goto 68
+	expr3  goto 26
+	expr4  goto 27
 
 
 state 48
-	sub_prog : TO IDSUBP cmd_seq . END  (7)
-	cmd_seq : cmd_seq . cmd  (9)
+	cmd : MAKE NAME expr .  (21)
+	expr : expr . PLUS expr2  (24)
+	expr : expr . MINUS expr2  (25)
 
-	FORWARD  shift 3
-	BACKWARD  shift 4
-	PRINT  shift 5
-	RIGHT  shift 6
-	LEFT  shift 7
-	HOME  shift 8
-	MAKE  shift 9
-	END  shift 65
-	REPEAT  shift 11
-	IF  shift 12
-	IFELSE  shift 13
-	IDSUBP  shift 14
-	PRINTS  shift 15
-	.  error
-
-	cmd  goto 66
+	PLUS  shift 42
+	MINUS  shift 43
+	$end  reduce 21
+	FORWARD  reduce 21
+	BACKWARD  reduce 21
+	PRINT  reduce 21
+	RIGHT  reduce 21
+	LEFT  reduce 21
+	HOME  reduce 21
+	RIGHTC  reduce 21
+	MAKE  reduce 21
+	TO  reduce 21
+	END  reduce 21
+	REPEAT  reduce 21
+	IF  reduce 21
+	IFELSE  reduce 21
+	IDSUBP  reduce 21
+	PRINTS  reduce 21
 
 
 state 49
-	cmd : REPEAT expr LEFTC . cmd_seq RIGHTC  (17)
+	subprog_header : IDSUBP params .  (8)
+	params : params . REF  (44)
+
+	REF  shift 69
+	FORWARD  reduce 8
+	BACKWARD  reduce 8
+	PRINT  reduce 8
+	RIGHT  reduce 8
+	LEFT  reduce 8
+	HOME  reduce 8
+	MAKE  reduce 8
+	REPEAT  reduce 8
+	IF  reduce 8
+	IFELSE  reduce 8
+	IDSUBP  reduce 8
+	PRINTS  reduce 8
+
+
+state 50
+	cmd_seq : cmd .  (9)
+
+	.  reduce 9
+
+
+state 51
+	sub_prog : TO subprog_header cmd_seq . END  (7)
+	cmd_seq : cmd_seq . cmd  (10)
+
+	FORWARD  shift 3
+	BACKWARD  shift 4
+	PRINT  shift 5
+	RIGHT  shift 6
+	LEFT  shift 7
+	HOME  shift 8
+	MAKE  shift 9
+	END  shift 70
+	REPEAT  shift 11
+	IF  shift 12
+	IFELSE  shift 13
+	IDSUBP  shift 14
+	PRINTS  shift 15
+	.  error
+
+	cmd  goto 71
+
+
+state 52
+	cmd : REPEAT expr LEFTC . cmd_seq RIGHTC  (18)
 
 	FORWARD  shift 3
 	BACKWARD  shift 4
@@ -728,82 +802,12 @@ state 49
 	PRINTS  shift 15
 	.  error
 
-	cmd  goto 47
-	cmd_seq  goto 67
-
-
-state 50
-	cond : expr EQUAL . expr  (34)
-
-	LPAR  shift 21
-	INT  shift 22
-	REF  shift 23
-	.  error
-
-	expr  goto 68
-	expr2  goto 25
-	expr3  goto 26
-	expr4  goto 27
-
-
-state 51
-	cond : expr DIFF . expr  (35)
-
-	LPAR  shift 21
-	INT  shift 22
-	REF  shift 23
-	.  error
-
-	expr  goto 69
-	expr2  goto 25
-	expr3  goto 26
-	expr4  goto 27
-
-
-state 52
-	cond : expr LESS . expr  (36)
-
-	LPAR  shift 21
-	INT  shift 22
-	REF  shift 23
-	.  error
-
-	expr  goto 70
-	expr2  goto 25
-	expr3  goto 26
-	expr4  goto 27
+	cmd  goto 50
+	cmd_seq  goto 72
 
 
 state 53
-	cond : expr LESSEQ . expr  (37)
-
-	LPAR  shift 21
-	INT  shift 22
-	REF  shift 23
-	.  error
-
-	expr  goto 71
-	expr2  goto 25
-	expr3  goto 26
-	expr4  goto 27
-
-
-state 54
-	cond : expr GREATER . expr  (38)
-
-	LPAR  shift 21
-	INT  shift 22
-	REF  shift 23
-	.  error
-
-	expr  goto 72
-	expr2  goto 25
-	expr3  goto 26
-	expr4  goto 27
-
-
-state 55
-	cond : expr GREATEREQ . expr  (39)
+	cond : expr EQUAL . expr  (35)
 
 	LPAR  shift 21
 	INT  shift 22
@@ -816,29 +820,78 @@ state 55
 	expr4  goto 27
 
 
-state 56
-	cmd : IF cond LEFTC . cmd_seq RIGHTC  (18)
+state 54
+	cond : expr DIFF . expr  (36)
 
-	FORWARD  shift 3
-	BACKWARD  shift 4
-	PRINT  shift 5
-	RIGHT  shift 6
-	LEFT  shift 7
-	HOME  shift 8
-	MAKE  shift 9
-	REPEAT  shift 11
-	IF  shift 12
-	IFELSE  shift 13
-	IDSUBP  shift 14
-	PRINTS  shift 15
+	LPAR  shift 21
+	INT  shift 22
+	REF  shift 23
 	.  error
 
-	cmd  goto 47
-	cmd_seq  goto 74
+	expr  goto 74
+	expr2  goto 25
+	expr3  goto 26
+	expr4  goto 27
+
+
+state 55
+	cond : expr LESS . expr  (37)
+
+	LPAR  shift 21
+	INT  shift 22
+	REF  shift 23
+	.  error
+
+	expr  goto 75
+	expr2  goto 25
+	expr3  goto 26
+	expr4  goto 27
+
+
+state 56
+	cond : expr LESSEQ . expr  (38)
+
+	LPAR  shift 21
+	INT  shift 22
+	REF  shift 23
+	.  error
+
+	expr  goto 76
+	expr2  goto 25
+	expr3  goto 26
+	expr4  goto 27
 
 
 state 57
-	cmd : IFELSE cond LEFTC . cmd_seq RIGHTC LEFTC cmd_seq RIGHTC  (19)
+	cond : expr GREATER . expr  (39)
+
+	LPAR  shift 21
+	INT  shift 22
+	REF  shift 23
+	.  error
+
+	expr  goto 77
+	expr2  goto 25
+	expr3  goto 26
+	expr4  goto 27
+
+
+state 58
+	cond : expr GREATEREQ . expr  (40)
+
+	LPAR  shift 21
+	INT  shift 22
+	REF  shift 23
+	.  error
+
+	expr  goto 78
+	expr2  goto 25
+	expr3  goto 26
+	expr4  goto 27
+
+
+state 59
+	cmd : IF cond LEFTC . cmd_seq RIGHTC  (19)
 
 	FORWARD  shift 3
 	BACKWARD  shift 4
@@ -854,233 +907,122 @@ state 57
 	PRINTS  shift 15
 	.  error
 
-	cmd  goto 47
-	cmd_seq  goto 75
-
-
-state 58
-	expr4 : LPAR expr RPAR .  (33)
-
-	.  reduce 33
-
-
-state 59
-	expr : expr PLUS expr2 .  (23)
-
-	.  reduce 23
+	cmd  goto 50
+	cmd_seq  goto 79
 
 
 state 60
-	expr : expr MINUS expr2 .  (24)
+	cmd : IFELSE cond LEFTC . cmd_seq RIGHTC LEFTC cmd_seq RIGHTC  (20)
+
+	FORWARD  shift 3
+	BACKWARD  shift 4
+	PRINT  shift 5
+	RIGHT  shift 6
+	LEFT  shift 7
+	HOME  shift 8
+	MAKE  shift 9
+	REPEAT  shift 11
+	IF  shift 12
+	IFELSE  shift 13
+	IDSUBP  shift 14
+	PRINTS  shift 15
+	.  error
+
+	cmd  goto 50
+	cmd_seq  goto 80
+
+
+state 61
+	expr : expr . PLUS expr2  (24)
+	expr : expr . MINUS expr2  (25)
+	args : args expr .  (42)
+
+	PLUS  shift 42
+	MINUS  shift 43
+	$end  reduce 42
+	FORWARD  reduce 42
+	BACKWARD  reduce 42
+	PRINT  reduce 42
+	RIGHT  reduce 42
+	LEFT  reduce 42
+	HOME  reduce 42
+	LPAR  reduce 42
+	RIGHTC  reduce 42
+	MAKE  reduce 42
+	TO  reduce 42
+	END  reduce 42
+	REPEAT  reduce 42
+	IF  reduce 42
+	IFELSE  reduce 42
+	INT  reduce 42
+	REF  reduce 42
+	IDSUBP  reduce 42
+	PRINTS  reduce 42
+
+
+state 62
+	expr4 : LPAR expr RPAR .  (34)
+
+	.  reduce 34
+
+
+state 63
+	expr : expr PLUS expr2 .  (24)
 
 	.  reduce 24
 
 
-state 61
-	expr3 : expr3 TIMES expr4 .  (27)
-
-	.  reduce 27
-
-
-state 62
-	expr3 : expr3 MOD expr4 .  (28)
-
-	.  reduce 28
-
-
-state 63
-	expr3 : expr3 DIV expr4 .  (29)
-
-	.  reduce 29
-
-
 state 64
-	expr2 : expr3 POW expr2 .  (25)
+	expr : expr MINUS expr2 .  (25)
 
 	.  reduce 25
 
 
 state 65
-	sub_prog : TO IDSUBP cmd_seq END .  (7)
+	expr3 : expr3 TIMES expr4 .  (28)
+
+	.  reduce 28
+
+
+state 66
+	expr3 : expr3 MOD expr4 .  (29)
+
+	.  reduce 29
+
+
+state 67
+	expr3 : expr3 DIV expr4 .  (30)
+
+	.  reduce 30
+
+
+state 68
+	expr2 : expr3 POW expr2 .  (26)
+
+	.  reduce 26
+
+
+state 69
+	params : params REF .  (44)
+
+	.  reduce 44
+
+
+state 70
+	sub_prog : TO subprog_header cmd_seq END .  (7)
 
 	.  reduce 7
 
 
-state 66
-	cmd_seq : cmd_seq cmd .  (9)
-
-	.  reduce 9
-
-
-state 67
-	cmd_seq : cmd_seq . cmd  (9)
-	cmd : REPEAT expr LEFTC cmd_seq . RIGHTC  (17)
-
-	FORWARD  shift 3
-	BACKWARD  shift 4
-	PRINT  shift 5
-	RIGHT  shift 6
-	LEFT  shift 7
-	HOME  shift 8
-	RIGHTC  shift 76
-	MAKE  shift 9
-	REPEAT  shift 11
-	IF  shift 12
-	IFELSE  shift 13
-	IDSUBP  shift 14
-	PRINTS  shift 15
-	.  error
-
-	cmd  goto 66
-
-
-state 68
-	expr : expr . PLUS expr2  (23)
-	expr : expr . MINUS expr2  (24)
-	cond : expr EQUAL expr .  (34)
-
-	PLUS  shift 40
-	MINUS  shift 41
-	LEFTC  reduce 34
-
-
-state 69
-	expr : expr . PLUS expr2  (23)
-	expr : expr . MINUS expr2  (24)
-	cond : expr DIFF expr .  (35)
-
-	PLUS  shift 40
-	MINUS  shift 41
-	LEFTC  reduce 35
-
-
-state 70
-	expr : expr . PLUS expr2  (23)
-	expr : expr . MINUS expr2  (24)
-	cond : expr LESS expr .  (36)
-
-	PLUS  shift 40
-	MINUS  shift 41
-	LEFTC  reduce 36
-
-
 state 71
-	expr : expr . PLUS expr2  (23)
-	expr : expr . MINUS expr2  (24)
-	cond : expr LESSEQ expr .  (37)
+	cmd_seq : cmd_seq cmd .  (10)
 
-	PLUS  shift 40
-	MINUS  shift 41
-	LEFTC  reduce 37
+	.  reduce 10
 
 
 state 72
-	expr : expr . PLUS expr2  (23)
-	expr : expr . MINUS expr2  (24)
-	cond : expr GREATER expr .  (38)
-
-	PLUS  shift 40
-	MINUS  shift 41
-	LEFTC  reduce 38
-
-
-state 73
-	expr : expr . PLUS expr2  (23)
-	expr : expr . MINUS expr2  (24)
-	cond : expr GREATEREQ expr .  (39)
-
-	PLUS  shift 40
-	MINUS  shift 41
-	LEFTC  reduce 39
-
-
-state 74
-	cmd_seq : cmd_seq . cmd  (9)
-	cmd : IF cond LEFTC cmd_seq . RIGHTC  (18)
-
-	FORWARD  shift 3
-	BACKWARD  shift 4
-	PRINT  shift 5
-	RIGHT  shift 6
-	LEFT  shift 7
-	HOME  shift 8
-	RIGHTC  shift 77
-	MAKE  shift 9
-	REPEAT  shift 11
-	IF  shift 12
-	IFELSE  shift 13
-	IDSUBP  shift 14
-	PRINTS  shift 15
-	.  error
-
-	cmd  goto 66
-
-
-state 75
-	cmd_seq : cmd_seq . cmd  (9)
-	cmd : IFELSE cond LEFTC cmd_seq . RIGHTC LEFTC cmd_seq RIGHTC  (19)
-
-	FORWARD  shift 3
-	BACKWARD  shift 4
-	PRINT  shift 5
-	RIGHT  shift 6
-	LEFT  shift 7
-	HOME  shift 8
-	RIGHTC  shift 78
-	MAKE  shift 9
-	REPEAT  shift 11
-	IF  shift 12
-	IFELSE  shift 13
-	IDSUBP  shift 14
-	PRINTS  shift 15
-	.  error
-
-	cmd  goto 66
-
-
-state 76
-	cmd : REPEAT expr LEFTC cmd_seq RIGHTC .  (17)
-
-	.  reduce 17
-
-
-state 77
-	cmd : IF cond LEFTC cmd_seq RIGHTC .  (18)
-
-	.  reduce 18
-
-
-state 78
-	cmd : IFELSE cond LEFTC cmd_seq RIGHTC . LEFTC cmd_seq RIGHTC  (19)
-
-	LEFTC  shift 79
-	.  error
-
-
-state 79
-	cmd : IFELSE cond LEFTC cmd_seq RIGHTC LEFTC . cmd_seq RIGHTC  (19)
-
-	FORWARD  shift 3
-	BACKWARD  shift 4
-	PRINT  shift 5
-	RIGHT  shift 6
-	LEFT  shift 7
-	HOME  shift 8
-	MAKE  shift 9
-	REPEAT  shift 11
-	IF  shift 12
-	IFELSE  shift 13
-	IDSUBP  shift 14
-	PRINTS  shift 15
-	.  error
-
-	cmd  goto 47
-	cmd_seq  goto 80
-
-
-state 80
-	cmd_seq : cmd_seq . cmd  (9)
-	cmd : IFELSE cond LEFTC cmd_seq RIGHTC LEFTC cmd_seq . RIGHTC  (19)
+	cmd_seq : cmd_seq . cmd  (10)
+	cmd : REPEAT expr LEFTC cmd_seq . RIGHTC  (18)
 
 	FORWARD  shift 3
 	BACKWARD  shift 4
@@ -1097,14 +1039,180 @@ state 80
 	PRINTS  shift 15
 	.  error
 
-	cmd  goto 66
+	cmd  goto 71
+
+
+state 73
+	expr : expr . PLUS expr2  (24)
+	expr : expr . MINUS expr2  (25)
+	cond : expr EQUAL expr .  (35)
+
+	PLUS  shift 42
+	MINUS  shift 43
+	LEFTC  reduce 35
+
+
+state 74
+	expr : expr . PLUS expr2  (24)
+	expr : expr . MINUS expr2  (25)
+	cond : expr DIFF expr .  (36)
+
+	PLUS  shift 42
+	MINUS  shift 43
+	LEFTC  reduce 36
+
+
+state 75
+	expr : expr . PLUS expr2  (24)
+	expr : expr . MINUS expr2  (25)
+	cond : expr LESS expr .  (37)
+
+	PLUS  shift 42
+	MINUS  shift 43
+	LEFTC  reduce 37
+
+
+state 76
+	expr : expr . PLUS expr2  (24)
+	expr : expr . MINUS expr2  (25)
+	cond : expr LESSEQ expr .  (38)
+
+	PLUS  shift 42
+	MINUS  shift 43
+	LEFTC  reduce 38
+
+
+state 77
+	expr : expr . PLUS expr2  (24)
+	expr : expr . MINUS expr2  (25)
+	cond : expr GREATER expr .  (39)
+
+	PLUS  shift 42
+	MINUS  shift 43
+	LEFTC  reduce 39
+
+
+state 78
+	expr : expr . PLUS expr2  (24)
+	expr : expr . MINUS expr2  (25)
+	cond : expr GREATEREQ expr .  (40)
+
+	PLUS  shift 42
+	MINUS  shift 43
+	LEFTC  reduce 40
+
+
+state 79
+	cmd_seq : cmd_seq . cmd  (10)
+	cmd : IF cond LEFTC cmd_seq . RIGHTC  (19)
+
+	FORWARD  shift 3
+	BACKWARD  shift 4
+	PRINT  shift 5
+	RIGHT  shift 6
+	LEFT  shift 7
+	HOME  shift 8
+	RIGHTC  shift 82
+	MAKE  shift 9
+	REPEAT  shift 11
+	IF  shift 12
+	IFELSE  shift 13
+	IDSUBP  shift 14
+	PRINTS  shift 15
+	.  error
+
+	cmd  goto 71
+
+
+state 80
+	cmd_seq : cmd_seq . cmd  (10)
+	cmd : IFELSE cond LEFTC cmd_seq . RIGHTC LEFTC cmd_seq RIGHTC  (20)
+
+	FORWARD  shift 3
+	BACKWARD  shift 4
+	PRINT  shift 5
+	RIGHT  shift 6
+	LEFT  shift 7
+	HOME  shift 8
+	RIGHTC  shift 83
+	MAKE  shift 9
+	REPEAT  shift 11
+	IF  shift 12
+	IFELSE  shift 13
+	IDSUBP  shift 14
+	PRINTS  shift 15
+	.  error
+
+	cmd  goto 71
 
 
 state 81
-	cmd : IFELSE cond LEFTC cmd_seq RIGHTC LEFTC cmd_seq RIGHTC .  (19)
+	cmd : REPEAT expr LEFTC cmd_seq RIGHTC .  (18)
+
+	.  reduce 18
+
+
+state 82
+	cmd : IF cond LEFTC cmd_seq RIGHTC .  (19)
 
 	.  reduce 19
 
 
-37 terminals, 13 nonterminals
-41 grammar rules, 82 states
+state 83
+	cmd : IFELSE cond LEFTC cmd_seq RIGHTC . LEFTC cmd_seq RIGHTC  (20)
+
+	LEFTC  shift 84
+	.  error
+
+
+state 84
+	cmd : IFELSE cond LEFTC cmd_seq RIGHTC LEFTC . cmd_seq RIGHTC  (20)
+
+	FORWARD  shift 3
+	BACKWARD  shift 4
+	PRINT  shift 5
+	RIGHT  shift 6
+	LEFT  shift 7
+	HOME  shift 8
+	MAKE  shift 9
+	REPEAT  shift 11
+	IF  shift 12
+	IFELSE  shift 13
+	IDSUBP  shift 14
+	PRINTS  shift 15
+	.  error
+
+	cmd  goto 50
+	cmd_seq  goto 85
+
+
+state 85
+	cmd_seq : cmd_seq . cmd  (10)
+	cmd : IFELSE cond LEFTC cmd_seq RIGHTC LEFTC cmd_seq . RIGHTC  (20)
+
+	FORWARD  shift 3
+	BACKWARD  shift 4
+	PRINT  shift 5
+	RIGHT  shift 6
+	LEFT  shift 7
+	HOME  shift 8
+	RIGHTC  shift 86
+	MAKE  shift 9
+	REPEAT  shift 11
+	IF  shift 12
+	IFELSE  shift 13
+	IDSUBP  shift 14
+	PRINTS  shift 15
+	.  error
+
+	cmd  goto 71
+
+
+state 86
+	cmd : IFELSE cond LEFTC cmd_seq RIGHTC LEFTC cmd_seq RIGHTC .  (20)
+
+	.  reduce 20
+
+
+37 terminals, 16 nonterminals
+46 grammar rules, 87 states

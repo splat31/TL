@@ -86,8 +86,8 @@ let rec comp_cmd cmd =
     | SYSCALL (cmd, args) ->
         (List.flatten (List.map comp_expr (List.rev args)))
         @ [INVOKE cmd]
-    | MAKE(i,e) ->
-        (comp_expr e) @ [SET_GLOB i]
+    | MAKE(i, e) ->
+			comp_expr e @ [if i < 0 then SET i else SET_GLOB i]
     | REPEAT (n, cmd) ->
 				let n_var = alloc_var () in
 				let i_var = alloc_var () in
@@ -98,8 +98,8 @@ let rec comp_cmd cmd =
 				@ [PUSH 0]
 				@ [SET_GLOB i_var]
 				@ [LABEL l_begin]
-				@ [GET_GLOB i_var]
 				@ [GET_GLOB n_var]
+				@ [GET_GLOB i_var]
 				@ [GOTO_GE l_end]
 				@ (comp_cmd cmd)
 				@ [GET_GLOB i_var]
@@ -120,8 +120,10 @@ let rec comp_cmd cmd =
 			@ [LABEL l_false]
 			@ (comp_cmd cmd_false)
 			@ [LABEL l_end]
-		| CALL_CMD (_, label, _) ->
-    	[CALL label]
+		| CALL_CMD (_, label, args) ->
+    	 (List.flatten
+       (List.map comp_expr args))
+    @ [CALL label]
     | _ ->
         failwith "unsupported command!"
 
@@ -137,8 +139,10 @@ and comp_expr expr =
 		failwith "attempt to compile NONE expression!"
 	| CST n ->
 		[PUSH n]
-	| VAR i-> 
-		[GET_GLOB i]
+	| VAR i ->
+    [GET_GLOB i]
+	| LOCAL_VAR i ->
+    [GET i]
 	| BINOP(opp, expr1, expr2) -> (comp_expr expr2) @ (comp_expr expr1)
 		@ (comp_binop opp)
 	| _ -> failwith "unsupported expression!"

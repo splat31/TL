@@ -1,0 +1,7 @@
+to calcul :a :b :c
+print  :a + :b
+print  :b * :c 
+print  :a + :b * :c 
+end
+
+calcul 4 3 2
